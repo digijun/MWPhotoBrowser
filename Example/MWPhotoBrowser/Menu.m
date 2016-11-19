@@ -1125,6 +1125,9 @@
     browser.autoPlayOnAppear = autoPlayOnAppear;
     [browser setCurrentPhotoIndex:0];
     
+    browser.toolbarCenterItems = @[[[UIBarButtonItem alloc] initWithTitle:@"Trash" style:UIBarButtonItemStylePlain target:self action:@selector(toolBarTrashPressed:)]];
+    
+    
     // Test custom selection images
 //    browser.customImageSelectedIconName = @"ImageSelected.png";
 //    browser.customImageSelectedSmallIconName = @"ImageSelectedSmall.png";
@@ -1179,6 +1182,11 @@
         
     });
 
+}
+
+- (void)toolBarTrashPressed:(id)sender
+{
+    NSLog(@"trash pressed");
 }
 
 #pragma mark - MWPhotoBrowserDelegate

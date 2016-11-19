@@ -238,40 +238,72 @@ static void * MWVideoPlayerObservation = &MWVideoPlayerObservation;
     UIBarButtonItem *fixedSpace = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFixedSpace target:self action:nil];
     fixedSpace.width = 32; // To balance action button
     UIBarButtonItem *flexSpace = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace target:self action:nil];
-    NSMutableArray *items = [[NSMutableArray alloc] init];
+//    NSMutableArray *items = [[NSMutableArray alloc] init];
 
     // Left button - Grid
     if (_enableGrid) {
         hasItems = YES;
-        [items addObject:[[UIBarButtonItem alloc] initWithImage:[UIImage imageForResourcePath:@"MWPhotoBrowser.bundle/UIBarButtonItemGrid" ofType:@"png" inBundle:[NSBundle bundleForClass:[self class]]] style:UIBarButtonItemStylePlain target:self action:@selector(showGridAnimated)]];
+        UIBarButtonItem *grid = [[UIBarButtonItem alloc] initWithImage:[UIImage imageForResourcePath:@"MWPhotoBrowser.bundle/UIBarButtonItemGrid" ofType:@"png" inBundle:[NSBundle bundleForClass:[self class]]] style:UIBarButtonItemStylePlain target:self action:@selector(showGridAnimated)];
+        if(_toolbarLeftItems && _toolbarLeftItems.count) {
+            NSMutableArray *tmp = [_toolbarLeftItems mutableCopy];
+            [tmp insertObject:grid atIndex:0];
+            _toolbarLeftItems = [NSArray arrayWithArray:tmp];
+        } else {
+            _toolbarLeftItems = @[grid];
+        }
     } else {
-        [items addObject:fixedSpace];
+        _toolbarLeftItems = @[fixedSpace];
     }
 
     // Middle - Nav
     if (_previousButton && _nextButton && numberOfPhotos > 1) {
         hasItems = YES;
-        [items addObject:flexSpace];
-        [items addObject:_previousButton];
-        [items addObject:flexSpace];
-        [items addObject:_nextButton];
-        [items addObject:flexSpace];
+        if(_toolbarCenterItems && _toolbarCenterItems.count) {
+            NSMutableArray *tmp = [[NSMutableArray alloc] init];
+            [tmp addObject:flexSpace];
+            [tmp addObject:_previousButton];
+            [tmp addObject:flexSpace];
+            [tmp addObject:_nextButton];
+            [tmp addObject:flexSpace];
+            [tmp addObjectsFromArray:_toolbarCenterItems];
+            [tmp addObject:flexSpace];
+            _toolbarCenterItems = [NSArray arrayWithArray:tmp];
+        } else {
+            _toolbarCenterItems = @[flexSpace, _previousButton, flexSpace, _nextButton, flexSpace];
+        }
+    } else if(_toolbarCenterItems && _toolbarCenterItems.count){
+        NSMutableArray *tmp = [_toolbarCenterItems mutableCopy];
+        [tmp insertObject:flexSpace atIndex:0];
+        [tmp addObject:flexSpace];
+        _toolbarCenterItems = [NSArray arrayWithArray:tmp];
     } else {
-        [items addObject:flexSpace];
+        _toolbarCenterItems = @[flexSpace];
     }
 
     // Right - Action
     if (_actionButton && !(!hasItems && !self.navigationItem.rightBarButtonItem)) {
-        [items addObject:_actionButton];
+        if(_toolbarRightItems && _toolbarRightItems.count) {
+            NSMutableArray *tmp = [_toolbarRightItems mutableCopy];
+            [tmp addObject:_actionButton];
+            _toolbarRightItems = [NSArray arrayWithArray:tmp];
+        } else {
+            _toolbarRightItems = @[_actionButton];
+        }
     } else {
         // We're not showing the toolbar so try and show in top right
-        if (_actionButton)
+        if (_actionButton) {
             self.navigationItem.rightBarButtonItem = _actionButton;
-        [items addObject:fixedSpace];
+        }
+        _toolbarRightItems = @[fixedSpace];
     }
 
     // Toolbar visibility
+    NSMutableArray *items = [[NSMutableArray alloc] init];
+    [items addObjectsFromArray:_toolbarLeftItems];
+    [items addObjectsFromArray:_toolbarCenterItems];
+    [items addObjectsFromArray:_toolbarRightItems];
     [_toolbar setItems:items];
+    
     BOOL hideToolbar = YES;
     for (UIBarButtonItem* item in _toolbar.items) {
         if (item != fixedSpace && item != flexSpace) {
